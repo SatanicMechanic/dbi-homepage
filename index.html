@@ -611,7 +611,14 @@
       .hero-title { font-size: 4rem; }
       .construction, .projects-section { padding-left: 20px; padding-right: 20px; }
       .project-card { grid-template-columns: 4px 1fr; }
-      .card-action { display: none; }
+      .card-accent-bar { grid-row: 1 / -1; }
+      .card-action {
+        grid-column: 2;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        margin-top: 16px;
+      }
       footer { flex-direction: column; }
       .footer-right { text-align: left; }
     }
