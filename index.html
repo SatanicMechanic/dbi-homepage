@@ -156,7 +156,7 @@
     }
 
     nav a:last-child { border-right: 1px solid rgba(200,168,75,0.15); }
-    nav a:hover { color: var(--accent2); background: rgba(200,168,75,0.07); }
+    nav a:hover { color: var(--accent2); background: rgba(200,168,75,0.07); cursor: not-allowed; }
 
     /* ── HERO ─────────────────────────────────────── */
     .hero {
@@ -327,7 +327,7 @@
     .construction {
       position: relative;
       z-index: 5;
-      padding: 80px 40px;
+      padding: 80px 40px 0;
       max-width: 960px;
       margin: 0 auto;
       text-align: center;
@@ -680,12 +680,12 @@
       </div>
     </div>
     <nav aria-label="Main">
-      <a href="#" title="ACCESS DENIED — clearance level insufficient">Solutions</a>
-      <a href="#" title="ACCESS DENIED — need to know basis. You do not need to know.">Capabilities</a>
-      <a href="#" title="ACCESS DENIED — leadership identities are compartmentalized">Leadership</a>
-      <a href="#" title="ACCESS DENIED — contracts pending. All of them.">Contracts</a>
-      <a href="#" title="ACCESS DENIED — we are always hiring, never onboarding">Careers</a>
-      <a href="#" title="ACCESS DENIED — thank you for your interest in losing money">Investors</a>
+      <a href="#" onclick="event.preventDefault(); alert(this.title)" title="ACCESS DENIED — clearance level insufficient">Solutions</a>
+      <a href="#" onclick="event.preventDefault(); alert(this.title)" title="ACCESS DENIED — need to know basis. You do not need to know.">Capabilities</a>
+      <a href="#" onclick="event.preventDefault(); alert(this.title)" title="ACCESS DENIED — leadership identities are compartmentalized">Leadership</a>
+      <a href="#" onclick="event.preventDefault(); alert(this.title)" title="ACCESS DENIED — contracts pending. All of them.">Contracts</a>
+      <a href="#" onclick="event.preventDefault(); alert(this.title)" title="ACCESS DENIED — we are always hiring, never onboarding">Careers</a>
+      <a href="#" onclick="event.preventDefault(); alert(this.title)" title="ACCESS DENIED — thank you for your interest in losing money">Investors</a>
     </nav>
   </header>
 
