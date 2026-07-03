@@ -4,7 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Death Butt Industries | Bringing Tomorrow Forward</title>
+  <meta name="description" content="Death Butt Industries — Bringing Tomorrow Forward, One Day at a Time. Forward-integrated solutions from a company that legally exists.">
+  <meta name="theme-color" content="#050d1a">
+  <meta property="og:title" content="Death Butt Industries">
+  <meta property="og:description" content="Bringing Tomorrow Forward, One Day at a Time. Site completion status: 7.3%.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://deathbutt.org/">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23050d1a' stroke='%23c8a84b' stroke-width='3'/%3E%3Cpolygon points='32,50 21.42,17.44 49.12,37.56 14.88,37.56 42.58,17.44' fill='none' stroke='%23c8a84b' stroke-width='2.5'/%3E%3C/svg%3E">
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -110,7 +118,7 @@
       flex-shrink: 0;
     }
 
-    .logo-text h1 {
+    .logo-text .logo-name {
       font-family: var(--head);
       font-weight: 900;
       font-size: 2.2rem;
@@ -603,6 +611,13 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
+      html { scroll-behavior: auto; }
+      .progress-fill { width: 7.3%; }
+      .hero-eyebrow, .hero-title, .hero-rule, .hero-sub, .project-card { opacity: 1; transform: none; }
+    }
+
     /* ── RESPONSIVE ───────────────────────────────── */
     @media (max-width: 700px) {
       header { padding: 0 20px; flex-direction: column; gap: 10px; padding-bottom: 14px; }
@@ -660,17 +675,17 @@
         <line x1="56" y1="32" x2="62" y2="32" stroke="#c8a84b" stroke-width="1.5"/>
       </svg>
       <div class="logo-text">
-        <h1>Death Butt Industries</h1>
+        <div class="logo-name">Death Butt Industries</div>
         <div class="tagline">Established 2026 &nbsp;|&nbsp; Redacted, OR &nbsp;|&nbsp; CAGE Code: [PENDING]</div>
       </div>
     </div>
-    <nav>
-      <a href="#">Solutions</a>
-      <a href="#">Capabilities</a>
-      <a href="#">Leadership</a>
-      <a href="#">Contracts</a>
-      <a href="#">Careers</a>
-      <a href="#">Investors</a>
+    <nav aria-label="Main">
+      <a href="#" title="ACCESS DENIED — clearance level insufficient">Solutions</a>
+      <a href="#" title="ACCESS DENIED — need to know basis. You do not need to know.">Capabilities</a>
+      <a href="#" title="ACCESS DENIED — leadership identities are compartmentalized">Leadership</a>
+      <a href="#" title="ACCESS DENIED — contracts pending. All of them.">Contracts</a>
+      <a href="#" title="ACCESS DENIED — we are always hiring, never onboarding">Careers</a>
+      <a href="#" title="ACCESS DENIED — thank you for your interest in losing money">Investors</a>
     </nav>
   </header>
 
@@ -726,7 +741,7 @@
     <div class="progress-wrap">
       <div class="progress-label">
         <span>SITE COMPLETION STATUS</span>
-        <span>7.3%</span>
+        <span id="progress-pct">7.3%</span>
       </div>
       <div class="progress-track">
         <div class="progress-fill"></div>
@@ -774,5 +789,18 @@
     </div>
   </footer>
 
+  <script>
+    // ponytail: cosine approximates the bar's ease-in-out keyframes; close enough at 4px tall
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      const pct = document.getElementById('progress-pct');
+      setInterval(() => {
+        const t = (performance.now() / 3000) * 2 * Math.PI;
+        pct.textContent = (8 - Math.cos(t)).toFixed(1) + '%';
+      }, 100);
+    }
+
+    console.log('%cDEATH BUTT INDUSTRIES', 'font-family:monospace;font-size:20px;color:#c8a84b;');
+    console.log('%cUnauthorized inspection of this console detected.\nYour curiosity has been logged and forwarded to no one.\nCareers: we are always hiring, never onboarding.', 'font-family:monospace;color:#8aa4bf;');
+  </script>
 </body>
 </html>
