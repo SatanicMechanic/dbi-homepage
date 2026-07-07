@@ -254,14 +254,14 @@
 
     /* Rotating targeting reticle (drifts toward cursor via margin vars) */
     .reticle {
-      transition: margin 2.5s ease-out;
+      transition: margin 1s ease-out;
       position: absolute;
       width: 320px;
       height: 320px;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      border: 1px solid rgba(200,168,75,0.12);
+      border: 1px solid rgba(200,168,75,0.35);
       border-radius: 50%;
       pointer-events: none;
       animation: spin 40s linear infinite;
@@ -494,9 +494,13 @@
       left: -80%;
       width: 40%;
       height: 100%;
-      background: linear-gradient(105deg, transparent, rgba(200,168,75,0.09), transparent);
+      background: linear-gradient(105deg, transparent, rgba(232,201,106,0.35), transparent);
       pointer-events: none;
-      transition: left 0.7s ease;
+      transition: left 0.6s ease;
+    }
+
+    .project-card:hover {
+      box-shadow: 0 0 24px rgba(200,168,75,0.25);
     }
 
     .project-card:hover::after { left: 130%; }
@@ -863,10 +867,12 @@
 
       // Reticle drifts toward the cursor, slowly, like it's targeting you
       const reticle = document.querySelector('.reticle');
-      document.addEventListener('mousemove', e => {
-        reticle.style.marginLeft = (e.clientX - innerWidth / 2) * 0.15 + 'px';
-        reticle.style.marginTop = (e.clientY - innerHeight / 2) * 0.15 + 'px';
-      });
+      if (reticle) {
+        document.addEventListener('mousemove', e => {
+          reticle.style.marginLeft = (e.clientX - innerWidth / 2) * 0.4 + 'px';
+          reticle.style.marginTop = (e.clientY - innerHeight / 2) * 0.4 + 'px';
+        });
+      }
     }
 
     // Tab backgrounded → the title notices
