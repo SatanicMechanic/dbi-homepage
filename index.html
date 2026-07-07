@@ -116,6 +116,16 @@
       width: 64px;
       height: 64px;
       flex-shrink: 0;
+      filter: drop-shadow(0 0 6px rgba(200,168,75,0.35));
+    }
+
+    .emblem-ring {
+      transform-origin: 32px 32px;
+      animation: spinFlat 60s linear infinite;
+    }
+
+    @keyframes spinFlat {
+      to { transform: rotate(360deg); }
     }
 
     .logo-text .logo-name {
@@ -209,6 +219,7 @@
     .hero-title span {
       color: var(--accent);
       display: block;
+      text-shadow: 0 0 30px rgba(200,168,75,0.35);
     }
 
     .hero-rule {
@@ -241,8 +252,9 @@
     .bracket-bl { bottom: 30px; left: 30px; border-bottom: 2px solid var(--accent); border-left: 2px solid var(--accent); }
     .bracket-br { bottom: 30px; right: 30px; border-bottom: 2px solid var(--accent); border-right: 2px solid var(--accent); }
 
-    /* Rotating targeting reticle */
+    /* Rotating targeting reticle (drifts toward cursor via margin vars) */
     .reticle {
+      transition: margin 2.5s ease-out;
       position: absolute;
       width: 320px;
       height: 320px;
@@ -407,13 +419,19 @@
 
     .progress-fill {
       height: 100%;
+      width: 7.3%;
       background: linear-gradient(90deg, var(--accent), var(--accent2));
-      animation: progressPulse 3s ease-in-out infinite;
+      transition: width 0.6s ease;
     }
 
-    @keyframes progressPulse {
-      0%,100% { width: 7%; }
-      50% { width: 9%; }
+    .regression-note {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.15em;
+      color: var(--red2);
+      text-transform: uppercase;
+      margin-top: 8px;
+      min-height: 14px;
     }
 
     /* ── PROJECTS SECTION ─────────────────────────── */
@@ -467,6 +485,21 @@
       border-color: rgba(200,168,75,0.5);
       background: rgba(15,32,64,0.9);
     }
+
+    /* gold sheen sweep on hover */
+    .project-card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -80%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(105deg, transparent, rgba(200,168,75,0.09), transparent);
+      pointer-events: none;
+      transition: left 0.7s ease;
+    }
+
+    .project-card:hover::after { left: 130%; }
 
     .project-card::before {
       content: 'DB LABS / PROJECT-01';
@@ -651,28 +684,44 @@
     <div class="logo-block">
       <!-- SVG Emblem -->
       <svg class="logo-emblem" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <!-- outer dashed ring -->
-        <circle cx="32" cy="32" r="30" stroke="#c8a84b" stroke-width="1.5" stroke-dasharray="4 2"/>
+        <!-- outer dashed ring (slowly rotates) -->
+        <g class="emblem-ring">
+          <circle cx="32" cy="32" r="30" stroke="#c8a84b" stroke-width="1.5" stroke-dasharray="4 2"/>
+        </g>
+        <!-- bezel ticks every 30°, cardinal ticks longer -->
+        <g class="emblem-ticks" stroke="#c8a84b">
+          <line x1="32" y1="2"  x2="32" y2="9"  stroke-width="1.5"/>
+          <line x1="32" y1="55" x2="32" y2="62" stroke-width="1.5"/>
+          <line x1="2"  y1="32" x2="9"  y2="32" stroke-width="1.5"/>
+          <line x1="55" y1="32" x2="62" y2="32" stroke-width="1.5"/>
+          <g stroke-width="0.8" opacity="0.6">
+            <line x1="47" y1="6.02" x2="45" y2="9.48"/>
+            <line x1="57.98" y1="17" x2="54.52" y2="19"/>
+            <line x1="57.98" y1="47" x2="54.52" y2="45"/>
+            <line x1="47" y1="57.98" x2="45" y2="54.52"/>
+            <line x1="17" y1="57.98" x2="19" y2="54.52"/>
+            <line x1="6.02" y1="47" x2="9.48" y2="45"/>
+            <line x1="6.02" y1="17" x2="9.48" y2="19"/>
+            <line x1="17" y1="6.02" x2="19" y2="9.48"/>
+          </g>
+        </g>
         <!-- inner solid ring -->
         <circle cx="32" cy="32" r="22" stroke="#c8a84b" stroke-width="1"/>
-        <!-- pentagram: point-down (inverted), 5 vertices evenly spaced starting at bottom -->
-        <!-- vertices at angles: 270°(top-up) → rotate 36° to invert → start at 90° (bottom point) -->
-        <!-- v0=bottom(90°), v1=upper-right(90+144=234°), v2=lower-left(234+144=378°=18°)... -->
-        <!-- Point-down pentagram: vertices at 90°, 162°, 234°, 306°, 378° (r=18, cx=32, cy=32) -->
-        <!-- Connected in star order: v0→v2→v4→v1→v3→v0 -->
+        <!-- fine crosshair through the star -->
+        <g stroke="#c8a84b" stroke-width="0.5" opacity="0.45">
+          <line x1="32" y1="12" x2="32" y2="52"/>
+          <line x1="12" y1="32" x2="52" y2="32"/>
+        </g>
+        <!-- Point-down pentagram: vertices at 90°, 162°, 234°, 306°, 18° (r=18, cx=32, cy=32), star order -->
         <polygon
           points="32,50 21.42,17.44 49.12,37.56 14.88,37.56 42.58,17.44"
-          fill="rgba(200,168,75,0.1)"
+          fill="rgba(200,168,75,0.12)"
           stroke="#c8a84b"
           stroke-width="1.2"
           stroke-linejoin="round"
         />
         <circle cx="32" cy="32" r="3" fill="#c8a84b"/>
-        <!-- cardinal tick marks -->
-        <line x1="32" y1="2" x2="32" y2="8" stroke="#c8a84b" stroke-width="1.5"/>
-        <line x1="32" y1="56" x2="32" y2="62" stroke="#c8a84b" stroke-width="1.5"/>
-        <line x1="2" y1="32" x2="8" y2="32" stroke="#c8a84b" stroke-width="1.5"/>
-        <line x1="56" y1="32" x2="62" y2="32" stroke="#c8a84b" stroke-width="1.5"/>
+        <circle cx="32" cy="32" r="5.5" stroke="#c8a84b" stroke-width="0.5" opacity="0.5"/>
       </svg>
       <div class="logo-text">
         <div class="logo-name">Death Butt Industries</div>
@@ -744,8 +793,9 @@
         <span id="progress-pct">7.3%</span>
       </div>
       <div class="progress-track">
-        <div class="progress-fill"></div>
+        <div class="progress-fill" id="progress-fill"></div>
       </div>
+      <div class="regression-note" id="regression-note" aria-live="polite"></div>
     </div>
 
     <div class="section-header">
@@ -790,14 +840,40 @@
   </footer>
 
   <script>
-    // ponytail: cosine approximates the bar's ease-in-out keyframes; close enough at 4px tall
     if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
       const pct = document.getElementById('progress-pct');
+      const fill = document.getElementById('progress-fill');
+      const note = document.getElementById('regression-note');
+      let regressing = false;
       setInterval(() => {
+        if (regressing) return;
         const t = (performance.now() / 3000) * 2 * Math.PI;
-        pct.textContent = (8 - Math.cos(t)).toFixed(1) + '%';
+        const v = 8 - Math.cos(t);
+        pct.textContent = v.toFixed(1) + '%';
+        fill.style.width = v + '%';
       }, 100);
+      // ponytail: fixed 30s cadence; randomize if it starts feeling scripted
+      setInterval(() => {
+        regressing = true;
+        pct.textContent = '6.9%';
+        fill.style.width = '6.9%';
+        note.textContent = '⚠ Regression detected — blame assigned';
+        setTimeout(() => { regressing = false; note.textContent = ''; }, 4000);
+      }, 30000);
+
+      // Reticle drifts toward the cursor, slowly, like it's targeting you
+      const reticle = document.querySelector('.reticle');
+      document.addEventListener('mousemove', e => {
+        reticle.style.marginLeft = (e.clientX - innerWidth / 2) * 0.15 + 'px';
+        reticle.style.marginTop = (e.clientY - innerHeight / 2) * 0.15 + 'px';
+      });
     }
+
+    // Tab backgrounded → the title notices
+    const realTitle = document.title;
+    document.addEventListener('visibilitychange', () => {
+      document.title = document.hidden ? 'COME BACK. WE’RE WATCHING.' : realTitle;
+    });
 
     console.log('%cDEATH BUTT INDUSTRIES', 'font-family:monospace;font-size:20px;color:#c8a84b;');
     console.log('%cUnauthorized inspection of this console detected.\nYour curiosity has been logged and forwarded to no one.\nCareers: we are always hiring, never onboarding.', 'font-family:monospace;color:#8aa4bf;');

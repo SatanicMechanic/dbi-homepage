@@ -34,6 +34,20 @@
     }
     p { max-width: 520px; color: #8aa4bf; font-size: 14px; line-height: 1.8; }
     a { color: #c8a84b; }
+    .redact {
+      background: #d4e4f4;
+      color: transparent;
+      transition: background 0.3s, color 0.3s;
+      cursor: help;
+    }
+    .redact:hover { background: transparent; color: #c8a84b; }
+    .incident {
+      font-size: 11px;
+      color: #52708f;
+      letter-spacing: 0.15em;
+      margin-top: 32px;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
@@ -41,9 +55,16 @@
   <div class="stamp">Page Redacted</div>
   <p>
     The document you requested either does not exist, never existed, or has been
-    preemptively declassified into nonexistence. This incident will be reported
+    preemptively declassified into nonexistence. Responsibility for this incident
+    rests solely with <span class="redact">whoever typed the URL</span>, per directive
+    <span class="redact">we just made up</span>. This incident will be reported
     to our incident-reporting department, which is also under construction.
   </p>
   <p style="margin-top:24px"><a href="/">← Return to authorized area</a></p>
+  <div class="incident">Incident Ref: <span id="incident-ref">DBI-404-0000</span> · Severity: Beige</div>
+  <script>
+    document.getElementById('incident-ref').textContent =
+      'DBI-404-' + Math.floor(1000 + Math.random() * 9000);
+  </script>
 </body>
 </html>
