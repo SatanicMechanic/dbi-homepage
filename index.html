@@ -149,6 +149,8 @@
 
     nav {
       display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
       gap: 0;
     }
 
@@ -657,8 +659,15 @@
 
     /* ── RESPONSIVE ───────────────────────────────── */
     @media (max-width: 700px) {
+      .clearance-bar { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
       header { padding: 0 20px; flex-direction: column; gap: 10px; padding-bottom: 14px; }
+      .logo-block { gap: 12px; }
+      .logo-emblem { width: 48px; height: 48px; }
+      .logo-text .logo-name { font-size: 1.5rem; }
+      .logo-text .tagline { font-size: 8px; letter-spacing: 0.12em; }
       nav { flex-wrap: wrap; justify-content: center; }
+      nav a { padding: 8px 12px; font-size: 0.75rem; }
+      .ticker-track { padding-left: 100px; animation-duration: 14s; }
       .hero { padding: 50px 20px; }
       .hero-title { font-size: 4rem; }
       .construction, .projects-section { padding-left: 20px; padding-right: 20px; }
