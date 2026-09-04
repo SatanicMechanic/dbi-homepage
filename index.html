@@ -644,6 +644,77 @@
       margin-top: 10px;
     }
 
+    /* ── SPRUCE: vignette + watermark + redact + sticky + blink ─ */
+    html::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.45) 100%);
+      pointer-events: none;
+      z-index: 2;
+    }
+    .hero::after {
+      content: 'FORWARD*';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-18deg);
+      font-family: var(--head);
+      font-weight: 900;
+      font-size: clamp(6rem, 22vw, 20rem);
+      letter-spacing: 0.05em;
+      color: transparent;
+      -webkit-text-stroke: 1px rgba(200,168,75,0.12);
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    .redact {
+      background: var(--light);
+      color: transparent;
+      transition: background 0.3s, color 0.3s;
+      cursor: help;
+      padding: 0 4px;
+    }
+    .redact:hover { background: transparent; color: var(--accent2); }
+    header {
+      position: sticky;
+      top: 0;
+      background: rgba(10,22,40,0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    .ticker-label::after { content: '▊'; margin-left: 8px; animation: blink 1s steps(1) infinite; }
+    @keyframes blink { 50% { opacity: 0; } }
+    .proc-wrap { margin: 0 auto 60px; max-width: 500px; text-align: center; }
+    .proc-btn {
+      font-family: var(--head);
+      font-weight: 600;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--navy);
+      background: var(--accent);
+      border: none;
+      padding: 12px 24px;
+      cursor: pointer;
+    }
+    .proc-btn:hover { background: var(--accent2); }
+    .proc-stamp {
+      display: none;
+      margin: 16px auto 0;
+      border: 2px solid var(--red2);
+      color: var(--red2);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.25em;
+      padding: 8px 20px;
+      text-transform: uppercase;
+      transform: rotate(-4deg);
+      width: fit-content;
+    }
+    .proc-stamp.show { display: inline-block; animation: stampIn 0.25s ease; }
+    @keyframes stampIn { from { transform: rotate(-4deg) scale(2); opacity: 0; } to { transform: rotate(-4deg) scale(1); opacity: 1; } }
+
     /* ── ANIMATIONS ───────────────────────────────── */
     @keyframes fadeSlideUp {
       from { opacity: 0; transform: translateY(20px); }
@@ -797,7 +868,7 @@
     </div>
     <h2>Full Digital Presence<br>Forthcoming</h2>
     <p>
-      The DBI enterprise web platform is currently undergoing rigorous multi-phase integration testing and strategic content alignment. Our team of dedicated professionals is working around the clock to deploy a world-class online presence commensurate with our world-class mission.
+      The DBI enterprise web platform is currently undergoing rigorous <span class="redact">multi-phase integration testing</span> and <span class="redact">strategic content alignment</span>. Our team of dedicated professionals is working around the clock to deploy a world-class online presence commensurate with our world-class mission.
     </p>
 
     <div class="progress-wrap">
@@ -809,6 +880,10 @@
         <div class="progress-fill" id="progress-fill"></div>
       </div>
       <div class="regression-note" id="regression-note" aria-live="polite"></div>
+    </div>
+    <div class="proc-wrap">
+      <button class="proc-btn" id="proc-btn" type="button">Request Procurement Access</button>
+      <div class="proc-stamp" id="proc-stamp" aria-live="polite"></div>
     </div>
 
     <div class="section-header">
@@ -866,11 +941,12 @@
         fill.style.width = v + '%';
       }, 100);
       // ponytail: fixed 30s cadence; randomize if it starts feeling scripted
+      const culprits = ['Jenkins', 'Claude', 'Trump'];
       setInterval(() => {
         regressing = true;
         pct.textContent = '6.9%';
         fill.style.width = '6.9%';
-        note.textContent = '⚠ Regression detected — blame assigned';
+        note.textContent = '⚠ Regression detected — blame: ' + culprits[Math.floor(Math.random() * culprits.length)];
         setTimeout(() => { regressing = false; note.textContent = ''; }, 4000);
       }, 30000);
 
@@ -892,6 +968,38 @@
 
     console.log('%cDEATH BUTT INDUSTRIES', 'font-family:monospace;font-size:20px;color:#c8a84b;');
     console.log('%cUnauthorized inspection of this console detected.\nYour curiosity has been logged and forwarded to no one.\nCareers: we are always hiring, never onboarding.', 'font-family:monospace;color:#8aa4bf;');
+    // Tomorrowness Index ticks live in the ticker
+    const tomorrowSpans = [...document.querySelectorAll('.ticker-track span')].filter(s => s.textContent.includes('TOMORROWNESS'));
+    setInterval(() => {
+      const v = (94.6 + Math.random() * 0.2).toFixed(1) + '%';
+      tomorrowSpans.forEach(s => { s.textContent = 'TOMORROWNESS INDEX: ' + v; });
+    }, 2000);
+
+    // Procurement portal: always denied, promptly
+    const procBtn = document.getElementById('proc-btn');
+    const procStamp = document.getElementById('proc-stamp');
+    let procCount = 0;
+    if (procBtn && procStamp) {
+      procBtn.addEventListener('click', () => {
+        procCount++;
+        procStamp.textContent = 'DENIED' + (procCount > 1 ? ' (×' + procCount + ')' : '') + ' — insufficient tomorrowness';
+        procStamp.classList.remove('show');
+        void procStamp.offsetWidth;
+        procStamp.classList.add('show');
+      });
+    }
+
+    // Konami → clearance (not really)
+    const seq = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+    let pos = 0;
+    document.addEventListener('keydown', e => {
+      const k = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+      pos = (k === seq[pos]) ? pos + 1 : (k === seq[0] ? 1 : 0);
+      if (pos === seq.length) {
+        pos = 0;
+        alert('CLEARANCE GRANTED (not really)');
+      }
+    });
   </script>
 </body>
 </html>
