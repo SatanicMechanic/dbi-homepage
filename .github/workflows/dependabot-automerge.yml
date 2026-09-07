@@ -18,9 +18,10 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
-            const now = Date.now();
-
+            // No age gate here. Dependabot has applied a 3-day default cooldown
+            // to version updates since 2026-07-14, so a PR does not exist until
+            // the release has already aged — an extra wait in this job just
+            // double-counts it (it used to make the real delay 6 days).
             const { data: prs } = await github.rest.pulls.list({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -30,15 +31,7 @@ jobs:
             for (const pr of prs) {
               if (pr.user.login !== 'dependabot[bot]') continue;
 
-              const ageMs = now - new Date(pr.created_at).getTime();
-              const ageDays = Math.floor(ageMs / 86400000);
-
-              if (ageMs < THREE_DAYS_MS) {
-                core.info(`PR #${pr.number} is ${ageDays}d old — cooldown not elapsed, skipping`);
-                continue;
-              }
-
-              core.info(`Merging PR #${pr.number} (${ageDays}d old): ${pr.title}`);
+              core.info(`Merging PR #${pr.number}: ${pr.title}`);
               await github.rest.pulls.merge({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
