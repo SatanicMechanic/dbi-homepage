@@ -211,12 +211,17 @@ Callers today: 1 (you).</pre>
     root.classList.remove('typing');
 
     const shown = nodes.map(() => 0); // characters revealed per node; a node's characters arrive in order
-    let at = 0;
+    let at = 0, head = -1; // head: the node holding the print-head cursor
+    const draw = n => { nodes[n][0].nodeValue = nodes[n][1].slice(0, shown[n]) + (n === head ? '█' : ''); };
     const paint = to => {
       const dirty = new Set();
       for (; at < to; at++) { const [n, c] = order[at]; shown[n] = c + 1; dirty.add(n); }
-      dirty.forEach(n => { nodes[n][0].nodeValue = nodes[n][1].slice(0, shown[n]); });
+      if (head >= 0) dirty.add(head);
+      head = at < order.length ? order[at][0] : -1; // the cursor sits in the cell of the next character
+      if (head >= 0) dirty.add(head);
+      dirty.forEach(draw);
     };
+    paint(0); // cursor appears in the first cell right away
     const ac = new AbortController();
     // Skip: click or key shows the rest at once. Focus after the keystroke lands on the body, and drop the listeners.
     const finish = () => { ac.abort(); clearInterval(timer); paint(order.length); setTimeout(focusPrompt); };
