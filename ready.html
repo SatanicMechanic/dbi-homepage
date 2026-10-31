@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>READY.</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#a0fef8">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23a0fef8'/%3E%3Crect x='16' y='12' width='32' height='40' fill='%23252390'/%3E%3C/svg%3E">
+<style>
+  /* A VIC-20 screen: 22 columns, blue on white, cyan border. Single deliberate look. */
+  :root {
+    --border: #a0fef8; --screen: #ffffff; --ink: #252390; /* VICE colodore_vic palette: cyan / white / blue, 12.2:1 */
+    --mono: ui-monospace, Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  html { background: var(--border); -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; min-height: 100vh; box-sizing: border-box; color: var(--ink);
+    font: 22px/1.2 var(--mono);
+    font-size: min(22px, calc((100vw - 32px) / 16.4), calc((100vh - 110px) / 31));
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.2em;
+    padding: 16px;
+  }
+  .screen {
+    /* 22 columns x 23 rows; starts at the top, and scrolls (JS pins the bottom) once the screen fills */
+    background: var(--screen); box-sizing: content-box; width: 22ch; height: calc(23 * 1.2em); padding: .6em 2ch;
+    overflow: hidden; cursor: text;
+  }
+  pre { margin: 0; font: inherit; white-space: pre-wrap; word-break: break-all; }
+  .cursor { animation: blink 1.06s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  /* the real field is invisible; the screen mirrors it (16px keeps iOS from zooming on focus) */
+  #kb { position: absolute; left: 0; top: 0; width: 1px; height: 1px; opacity: 0; font-size: 16px; border: 0; padding: 0; }
+  .back { color: var(--ink); text-decoration: none; letter-spacing: .1em; }
+  .back:hover, .back:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+  a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .cursor { animation: none; } }
+</style>
+</head>
+<body>
+<main class="screen" id="screen">
+  <pre id="out" role="log" aria-label="VIC-20 screen"></pre>
+  <pre id="prompt"><span id="cur"></span><span class="cursor" aria-hidden="true">█</span></pre>
+</main>
+<input id="kb" maxlength="88" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" aria-label="BASIC command line. Try: 10 PRINT &quot;HI&quot;, 20 GOTO 10, RUN. Escape stops a program.">
+<a class="back" href="/">DEATHBUTT.ORG</a>
+<script>
+  // A very small CBM BASIC: PRINT, GOTO, LIST, RUN, NEW, REM, END, line numbers, + - * / ( ).
+  // No eval: expressions go through a tiny parser. Everything else answers ?SYNTAX  ERROR.
+  const out = document.getElementById('out'), cur = document.getElementById('cur');
+  const kb = document.getElementById('kb'), prompt = document.getElementById('prompt');
+  const SPEED = 8; // statements per 16 ms tick, so a 10 PRINT loop scrolls like the real thing
+  let buf = '', sorted = null, pc = null, last = null, running = false, timer = 0;
+  const prog = new Map(); // line number -> { text, stmts }
+
+  const screen = document.getElementById('screen');
+  const pin = () => { screen.scrollTop = screen.scrollHeight; }; // keep the newest rows in view
+  const flush = () => { out.textContent = buf; pin(); };
+  const write = s => { buf += s; if (buf.length > 8000) buf = buf.slice(buf.indexOf('\n', buf.length - 6000) + 1); };
+  const nl = () => { if (buf && !buf.endsWith('\n')) write('\n'); };
+  const order = () => sorted || (sorted = [...prog.keys()].sort((a, b) => a - b));
+
+  // Statements split on ':' outside quotes; a REM swallows the rest of the line.
+  const split = t => {
+    const r = []; let q = false, s = '';
+    for (const c of t) {
+      if (c === '"') q = !q;
+      if (c === ':' && !q && !/^\s*REM/.test(s)) { r.push(s); s = ''; } else s += c;
+    }
+    r.push(s); return r;
+  };
+
+  const calc = s => { // + - * / ( ) on decimals; throws an error name
+    let i = 0;
+    const ws = () => { while (s[i] === ' ') i++; };
+    const atom = () => {
+      ws();
+      if (s[i] === '(') { i++; const v = expr(); ws(); if (s[i++] !== ')') throw 'SYNTAX'; return v; }
+      if (s[i] === '-') { i++; return -atom(); }
+      const m = /^\d*\.?\d+/.exec(s.slice(i)); if (!m) throw 'SYNTAX';
+      i += m[0].length; return +m[0];
+    };
+    const term = () => {
+      let v = atom();
+      for (;;) {
+        ws(); const c = s[i]; if (c !== '*' && c !== '/') return v;
+        i++; const r = atom(); if (c === '/' && r === 0) throw 'DIVISION BY ZERO';
+        v = c === '*' ? v * r : v / r;
+      }
+    };
+    const expr = () => {
+      let v = term();
+      for (;;) { ws(); const c = s[i]; if (c !== '+' && c !== '-') return v; i++; const r = term(); v = c === '+' ? v + r : v - r; }
+    };
+    const v = expr(); ws(); if (i < s.length) throw 'SYNTAX'; return v;
+  };
+  // CBM prints a number with a leading space (sign slot) and a trailing space.
+  const fmt = v => (v < 0 ? '' : ' ') + +v.toPrecision(9) + ' ';
+
+  const doPrint = rest => {
+    let i = 0, newline = true;
+    while (i < rest.length) {
+      newline = true;
+      while (rest[i] === ' ') i++;
+      if (i >= rest.length) break;
+      if (rest[i] === '"') { const j = rest.indexOf('"', i + 1), e = j < 0 ? rest.length : j; write(rest.slice(i + 1, e)); i = e + 1; }
+      else if (rest[i] !== ';' && rest[i] !== ',') {
+        let j = i; while (j < rest.length && rest[j] !== ';' && rest[j] !== ',') j++;
+        write(fmt(calc(rest.slice(i, j)))); i = j;
+      }
+      while (rest[i] === ' ') i++;
+      if (rest[i] === ';') { newline = false; i++; }
+      else if (rest[i] === ',') { newline = false; i++; write(' '.repeat(11 - (buf.length - buf.lastIndexOf('\n') - 1) % 11)); }
+      else if (i < rest.length) throw 'SYNTAX';
+    }
+    if (newline) write('\n');
+  };
+
+  // One statement. Returns undefined (carry on), a line number (GOTO) or null (END).
+  const exec = st => {
+    st = st.trim(); if (!st) return;
+    let m;
+    if ((m = /^(?:PRINT|\?)\s*(.*)$/.exec(st))) { doPrint(m[1]); return; }
+    if ((m = /^GOTO\s*(\d+)$/.exec(st))) return +m[1];
+    if (/^(END|STOP)$/.test(st)) return null;
+    if (/^REM/.test(st)) return;
+    throw 'SYNTAX';
+  };
+
+  const ready = () => { nl(); write('READY.\n'); flush(); kb.value = ''; cur.textContent = ''; prompt.hidden = false; pin(); kb.focus({ preventScroll: true }); };
+  const fail = (e, ln) => { nl(); write('?' + (typeof e === 'string' ? e : 'SYNTAX') + '  ERROR' + (ln == null ? '' : ' IN ' + ln) + '\n'); };
+
+  const step = () => {
+    const L = prog.get(pc.n); last = pc.n;
+    const r = exec(L.stmts[pc.s++]);
+    if (r === null) { running = false; return; }
+    if (typeof r === 'number') { if (!prog.has(r)) throw "UNDEF'D STATEMENT"; pc = { n: r, s: 0 }; return; }
+    if (pc.s >= L.stmts.length) {
+      const nx = order().find(n => n > pc.n);
+      if (nx === undefined) running = false; else pc = { n: nx, s: 0 };
+    }
+  };
+  const go = n => {
+    pc = { n, s: 0 }; running = true; prompt.hidden = true;
+    const tick = () => {
+      try { for (let k = 0; k < SPEED && running; k++) step(); }
+      catch (e) { running = false; fail(e, last); }
+      flush();
+      if (running) timer = setTimeout(tick, 16); else ready();
+    };
+    tick();
+  };
+  const stop = () => { if (!running) return; running = false; clearTimeout(timer); nl(); write('BREAK IN ' + last + '\n'); ready(); };
+
+  const submit = text => {
+    write(text + '\n');
+    const m = /^\s*(\d+)\s*(.*)$/.exec(text);
+    if (m) { // a numbered line edits the program and prints nothing, like the real thing
+      if (+m[1] > 63999) { fail('SYNTAX'); return ready(); }
+      const body = m[2].trim();
+      if (body) prog.set(+m[1], { text: body, stmts: split(body) }); else prog.delete(+m[1]);
+      sorted = null; return flush();
+    }
+    const t = text.trim();
+    if (!t) return flush();
+    if (t === 'NEW') { prog.clear(); sorted = null; }
+    else if (t === 'LIST') order().forEach(n => write(n + ' ' + prog.get(n).text + '\n'));
+    else if (t === 'RUN') { if (prog.size) return go(order()[0]); }
+    else {
+      try {
+        for (const s of split(t)) {
+          const r = exec(s);
+          if (typeof r === 'number') { if (!prog.has(r)) throw "UNDEF'D STATEMENT"; return go(r); }
+          if (r === null) break;
+        }
+      } catch (e) { fail(e); }
+    }
+    ready();
+  };
+
+  kb.addEventListener('input', () => { cur.textContent = kb.value.toUpperCase(); pin(); });
+  kb.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' || running) return;
+    e.preventDefault(); const v = kb.value.toUpperCase(); kb.value = ''; cur.textContent = ''; submit(v);
+  });
+  addEventListener('keydown', e => { if (e.key === 'Escape') stop(); });
+  // A tap or click stops a running program (no Escape key on a phone). Focus returns on 'click', which fires after
+  // the browser's own focus change, and a tap is the gesture that opens a phone keyboard.
+  addEventListener('pointerdown', stop);
+  addEventListener('click', () => kb.focus({ preventScroll: true }));
+
+  // Power-on screen of an unexpanded VIC-20: banner, bytes free, READY., cursor on the next row. No blank lines.
+  write('**** CBM BASIC V2 ****\n3583 BYTES FREE\n');
+  ready();
+</script>
+</body>
+</html>

@@ -32,10 +32,16 @@ jobs:
               if (pr.user.login !== 'dependabot[bot]') continue;
 
               core.info(`Merging PR #${pr.number}: ${pr.title}`);
-              await github.rest.pulls.merge({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                pull_number: pr.number,
-                merge_method: 'squash',
-              });
+              // One failed merge (e.g. a PR left stale by a sibling's workflow
+              // edit) must not abort the PRs after it.
+              try {
+                await github.rest.pulls.merge({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  pull_number: pr.number,
+                  merge_method: 'squash',
+                });
+              } catch (e) {
+                core.warning(`PR #${pr.number} not merged: ${e.message}`);
+              }
             }
