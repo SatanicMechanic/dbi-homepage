@@ -57,7 +57,7 @@
   const screen = document.getElementById('screen');
   const pin = () => { screen.scrollTop = screen.scrollHeight; }; // keep the newest rows in view
   const flush = () => { out.textContent = buf; pin(); };
-  const write = s => { buf += s; if (buf.length > 8000) buf = buf.slice(buf.indexOf('\n', buf.length - 6000) + 1); };
+  const write = s => { buf += s; if (buf.length > 8000) { const c = buf.indexOf('\n', buf.length - 6000); buf = c < 0 ? buf.slice(-6000) : buf.slice(c + 1); } };
   const nl = () => { if (buf && !buf.endsWith('\n')) write('\n'); };
   const order = () => sorted || (sorted = [...prog.keys()].sort((a, b) => a - b));
 

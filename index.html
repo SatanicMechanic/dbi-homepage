@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Death Butt Industries</title>
+<link rel="canonical" href="https://deathbutt.org/">
 <meta name="description" content="300 baud. One line. Sysop: DBI.">
 <meta name="theme-color" content="#0d0c0a">
 <meta property="og:title" content="Death Butt Industries">
@@ -162,7 +163,7 @@ Callers today: 1 (you).</pre>
     document.querySelectorAll('.clock').forEach(el => { el.textContent = t; });
     document.querySelectorAll('.date').forEach(el => { el.textContent = day; });
   };
-  tick(); setInterval(tick, 10000);
+  tick(); setTimeout(() => { tick(); setInterval(tick, 60000); }, 60000 - Date.now() % 60000);
 
   // Single-key menu like GBBS: typing a menu key at the prompt follows that link.
   const keys = {};
